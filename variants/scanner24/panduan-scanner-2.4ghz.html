@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panduan Praktikum — Scanner Spektrum 2,4 GHz (ESP32 + NRF24L01+)</title>
+<style>
+  :root{
+    --bg:#edf2f7; --card:#fff; --ink:#0f172a; --muted:#53627a;
+    --line:#d9e2ee; --brand:#0f766e; --brand-dark:#115e59; --brand-light:#ccfbf1;
+    --blue:#0e7490; --amber:#b45309; --red:#b91c1c; --green:#15803d;
+    --radius:16px; --shadow:0 10px 30px rgba(15,23,42,.07);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+  a{color:var(--brand-dark)}
+  .hero{background:radial-gradient(circle at 15% 20%,rgba(45,212,191,.25),transparent 40%),linear-gradient(135deg,#042f2e 0%,#0f766e 55%,#0e7490 100%);color:#fff;padding:54px 22px 70px}
+  .hero-inner{max-width:1180px;margin:0 auto}
+  .eyebrow{display:inline-block;font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:#99f6e4;margin-bottom:14px}
+  .hero h1{font-size:clamp(2rem,4vw,3.2rem);line-height:1.1;margin:0 0 14px;letter-spacing:-.02em}
+  .hero .lead{font-size:clamp(1rem,1.6vw,1.18rem);max-width:840px;color:#d1fae5;margin:0 0 22px}
+  .badges{display:flex;flex-wrap:wrap;gap:9px}
+  .badge{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);font-size:.82rem;font-weight:600;color:#ecfeff}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:#5eead4;box-shadow:0 0 0 3px rgba(94,234,212,.18)}
+  .layout{max-width:1180px;margin:-38px auto 50px;padding:0 20px;display:grid;grid-template-columns:252px minmax(0,1fr);gap:24px;align-items:start}
+  .toc{position:sticky;top:18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 16px;box-shadow:var(--shadow)}
+  .toc h2{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .toc ol{list-style:none;margin:0;padding:0;counter-reset:toc}
+  .toc li{counter-increment:toc;margin:2px 0}
+  .toc a{display:flex;gap:10px;align-items:baseline;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--ink);font-size:.9rem;font-weight:500}
+  .toc a::before{content:counter(toc,decimal-leading-zero);font-size:.72rem;font-weight:700;color:var(--brand);min-width:22px}
+  .toc a:hover{background:#f1f5f9;color:var(--brand-dark)}
+  main{display:flex;flex-direction:column;gap:22px;min-width:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;box-shadow:var(--shadow)}
+  .card>h2{display:flex;gap:12px;align-items:center;font-size:1.32rem;line-height:1.3;margin:0 0 8px;letter-spacing:-.01em}
+  .card>h2 .num{display:inline-flex;align-items:center;justify-content:center;min-width:40px;height:32px;padding:0 8px;border-radius:9px;background:var(--brand-light);color:var(--brand-dark);font-size:.85rem;font-weight:800;letter-spacing:.04em}
+  .card h3{font-size:1.03rem;margin:24px 0 8px;color:#12304a}
+  .card p{margin:9px 0}
+  .card ul,.card ol{margin:9px 0 9px 22px;padding:0}
+  .card li{margin:5px 0}
+  .lead-in{color:var(--muted)}
+  .callout{display:flex;gap:12px;align-items:flex-start;border:1px solid;border-left-width:5px;border-radius:12px;padding:13px 15px;margin:16px 0;font-size:.94rem}
+  .callout .ic{font-size:1.15rem;line-height:1.4}
+  .callout p{margin:0}
+  .callout.info{border-color:#bae6fd;border-left-color:#0284c7;background:#f0f9ff}
+  .callout.ok{border-color:#bbf7d0;border-left-color:#16a34a;background:#f0fdf4}
+  .callout.warn{border-color:#fde68a;border-left-color:#d97706;background:#fffbeb}
+  .callout.danger{border-color:#fecaca;border-left-color:#dc2626;background:#fef2f2}
+  .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}
+  .mini{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#f8fafc}
+  .mini h4{margin:0 0 5px;font-size:.92rem;color:#12304a}
+  .mini p{margin:0;font-size:.9rem;color:var(--muted)}
+  .figure{margin:18px 0;padding:12px;border:1px solid var(--line);border-radius:14px;background:#f8fafc}
+  .figure svg{display:block;width:100%;height:auto}
+  .figure figcaption{margin-top:9px;text-align:center;font-size:.84rem;color:var(--muted);line-height:1.5}
+  .table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;min-width:520px}
+  thead th{background:#f1f5f9;color:#12304a;text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+  tbody td{padding:10px 13px;border-bottom:1px solid #edf2f7;vertical-align:top}
+  tbody tr:nth-child(even){background:#fbfdff}
+  tbody tr:last-child td{border-bottom:none}
+  td code,th code,p code,li code{background:#eef4f8;color:#0f5f59;padding:2px 6px;border-radius:6px;font-family:"Cascadia Code",Consolas,"Courier New",monospace;font-size:.86em}
+  pre{margin:14px 0;background:#0b1220;color:#e2e8f0;border:1px solid #1e293b;border-radius:12px;padding:18px;overflow-x:auto;font-size:.82rem;line-height:1.55}
+  pre code{background:none;color:inherit;padding:0;font-size:1em}
+  .steps{counter-reset:step;display:flex;flex-direction:column;gap:11px;margin:14px 0}
+  .step{position:relative;padding:13px 15px 13px 54px;background:#f8fafc;border:1px solid var(--line);border-radius:12px}
+  .step::before{counter-increment:step;content:counter(step);position:absolute;left:14px;top:13px;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800}
+  .step strong{display:block;margin-bottom:2px;color:#12304a}
+  .step span{color:var(--muted);font-size:.92rem}
+  .checklist{list-style:none;margin:12px 0;padding:0}
+  .checklist li{position:relative;padding:7px 0 7px 30px;border-bottom:1px dashed #e2e8f0}
+  .checklist li:last-child{border-bottom:none}
+  .checklist li::before{content:"✓";position:absolute;left:0;top:7px;width:20px;height:20px;border-radius:50%;background:#dcfce7;color:#15803d;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:900}
+  .kpi-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+  .kpi{border:1px solid var(--line);border-radius:12px;padding:14px;background:linear-gradient(180deg,#fff,#f8fafc)}
+  .kpi b{display:block;font-size:1.35rem;color:var(--brand-dark);line-height:1.2}
+  .kpi span{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.03em}
+  .tag.green{background:#dcfce7;color:#166534}
+  .tag.amber{background:#fef3c7;color:#92400e}
+  .tag.red{background:#fee2e2;color:#991b1b}
+  .tag.blue{background:#e0f2fe;color:#075985}
+  .note-small{font-size:.86rem;color:var(--muted)}
+  hr.sep{border:none;border-top:1px solid var(--line);margin:24px 0}
+  footer{max-width:1180px;margin:0 auto 40px;padding:0 20px;color:var(--muted);font-size:.85rem;text-align:center}
+  @media(max-width:920px){.layout{grid-template-columns:1fr}.toc{position:static}.grid-2,.kpi-row{grid-template-columns:1fr}}
+  @media(max-width:560px){.card{padding:20px 18px}.hero{padding:40px 18px 58px}.badge{font-size:.75rem}}
+  @media print{body{background:#fff}.hero{background:#0f766e!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:24px}.layout{display:block;margin:0;padding:0}.toc{display:none}.card{box-shadow:none;border-color:#cbd5e1;break-inside:avoid;margin:0 0 14px}.figure,.table-wrap,pre{break-inside:avoid}a{color:inherit;text-decoration:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">Panduan Praktikum RF • Receive-Only</div>
+    <h1>Scanner Spektrum 2,4 GHz</h1>
+    <p class="lead">Mengukur kepadatan kanal Wi-Fi, Bluetooth, dan BLE secara <strong>pasif</strong> menggunakan <strong>ESP32</strong> dan <strong>dua modul NRF24L01+</strong>. Tidak ada sinyal yang dipancarkan.</p>
+    <div class="badges">
+      <span class="badge"><span class="dot"></span>Receive-only</span>
+      <span class="badge"><span class="dot"></span>ESP32-D0WD-V3</span>
+      <span class="badge"><span class="dot"></span>2× NRF24L01+</span>
+      <span class="badge"><span class="dot"></span>Arduino IDE 2.3.10</span>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="toc">
+    <h2>Daftar Isi</h2>
+    <ol>
+      <li><a href="#ringkasan">Ringkasan &amp; gambaran</a></li>
+      <li><a href="#tujuan">Tujuan praktikum</a></li>
+      <li><a href="#teori">Dasar teori</a></li>
+      <li><a href="#alat">Alat &amp; bahan</a></li>
+      <li><a href="#wiring">Wiring</a></li>
+      <li><a href="#software">Software</a></li>
+      <li><a href="#kode">Kode program</a></li>
+      <li><a href="#cara-kerja">Cara kerja kode</a></li>
+      <li><a href="#prosedur">Prosedur praktikum</a></li>
+      <li><a href="#data">Data &amp; analisis</a></li>
+      <li><a href="#peta-kanal">Peta kanal</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#lembar-kerja">Lembar kerja</a></li>
+      <li><a href="#referensi">Referensi &amp; batas aman</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <section class="card" id="ringkasan">
+      <h2><span class="num">01</span> Ringkasan &amp; gambaran umum</h2>
+      <p class="lead-in">Panduan ini membangun sebuah <strong>pemindai spektrum 2,4 GHz pasif</strong>. ESP32 memerintahkan dua modul NRF24L01+ untuk berpindah dari kanal 0 sampai 125, lalu membaca bit <em>Received Power Detector</em> (RPD) pada setiap kanal. Hasilnya berupa persentase okupansi (<em>occupancy</em>): seberapa sering suatu kanal terdeteksi memiliki carrier di atas sekitar −64 dBm.</p>
+
+      <div class="kpi-row">
+        <div class="kpi"><b>126</b><span>kanal NRF24</span></div>
+        <div class="kpi"><b>2400–2525</b><span>MHz</span></div>
+        <div class="kpi"><b>1 bit</b><span>RPD per sampel</span></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="mini"><h4>Masukan</h4><p>Sinyal 2,4 GHz yang sudah ada di lingkungan: Wi-Fi, Bluetooth, BLE, microwave, dan perangkat ISM lainnya.</p></div>
+        <div class="mini"><h4>Proses</h4><p>Sweep 126 kanal, 40 sampel per kanal, lalu hitung persentase sampel yang mendeteksi carrier.</p></div>
+        <div class="mini"><h4>Keluaran</h4><p>Log CSV di Serial Monitor: waktu, kanal, frekuensi, kanal Wi-Fi/BLE, occupancy, dan level.</p></div>
+        <div class="mini"><h4>Perangkat</h4><p>ESP32 DevKit (D0WD-V3, 4 MB) + 2× NRF24L01+ (satu PA/LNA, satu modul biasa).</p></div>
+      </div>
+
+      <figure class="figure">
+        <svg viewBox="0 0 1040 430" role="img" aria-labelledby="figTopologi">
+          <title id="figTopologi">Topologi sistem scanner pasif</title>
+          <defs>
+            <marker id="arrowTeal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/></marker>
+            <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/></marker>
+          </defs>
+          <rect x="20" y="140" width="190" height="150" rx="16" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+          <text x="115" y="190" text-anchor="middle" font-size="19" font-weight="700" fill="#0c4a6e">Laptop / PC</text>
+          <text x="115" y="218" text-anchor="middle" font-size="13" fill="#075985">Arduino IDE</text>
+          <text x="115" y="240" text-anchor="middle" font-size="13" fill="#075985">Serial Monitor 115200</text>
+          <line x1="210" y1="215" x2="295" y2="215" stroke="#0f766e" stroke-width="3" marker-end="url(#arrowTeal)"/>
+          <text x="252" y="202" text-anchor="middle" font-size="12" font-weight="600" fill="#0f766e">USB</text>
+          <text x="252" y="238" text-anchor="middle" font-size="11" fill="#64748b">data + daya</text>
+          <rect x="295" y="105" width="235" height="220" rx="16" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+          <text x="412" y="150" text-anchor="middle" font-size="21" font-weight="700" fill="#f8fafc">ESP32</text>
+          <text x="412" y="177" text-anchor="middle" font-size="13" fill="#94a3b8">D0WD-V3 • dual-core</text>
+          <text x="412" y="199" text-anchor="middle" font-size="13" fill="#5eead4">Receive-only</text>
+          <rect x="325" y="225" width="175" height="62" rx="9" fill="#1e293b" stroke="#475569"/>
+          <text x="412" y="252" text-anchor="middle" font-size="13" font-weight="600" fill="#cbd5e1">SPI + CE/CSN</text>
+          <text x="412" y="272" text-anchor="middle" font-size="11" fill="#94a3b8">logika 3,3 V</text>
+          <line x1="530" y1="215" x2="640" y2="215" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+          <text x="585" y="200" text-anchor="middle" font-size="12" font-weight="600" fill="#0369a1">bus SPI</text>
+          <line x1="640" y1="110" x2="640" y2="320" stroke="#38bdf8" stroke-width="4"/>
+          <line x1="640" y1="110" x2="730" y2="110" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+          <line x1="640" y1="320" x2="730" y2="320" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrowBlue)"/>
+          <rect x="730" y="50" width="250" height="120" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="855" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#065f46">NRF24 #1</text>
+          <text x="855" y="112" text-anchor="middle" font-size="12" fill="#047857">PA/LNA + antena SMA</text>
+          <text x="855" y="136" text-anchor="middle" font-size="12" font-weight="600" fill="#0f766e">mode RX</text>
+          <rect x="730" y="260" width="250" height="120" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="855" y="298" text-anchor="middle" font-size="17" font-weight="700" fill="#065f46">NRF24 #2</text>
+          <text x="855" y="322" text-anchor="middle" font-size="12" fill="#047857">modul tanpa antena</text>
+          <text x="855" y="346" text-anchor="middle" font-size="12" font-weight="600" fill="#0f766e">mode RX</text>
+          <line x1="980" y1="110" x2="1025" y2="110" stroke="#334155" stroke-width="3"/>
+          <line x1="980" y1="320" x2="1025" y2="320" stroke="#334155" stroke-width="3"/>
+          <path d="M1025 96 q12 14 0 28" fill="none" stroke="#0f766e" stroke-width="2"/>
+          <path d="M1025 306 q12 14 0 28" fill="none" stroke="#0f766e" stroke-width="2"/>
+          <path d="M1032 88 q18 22 0 44" fill="none" stroke="#0f766e" stroke-width="2" opacity=".55"/>
+          <path d="M1032 298 q18 22 0 44" fill="none" stroke="#0f766e" stroke-width="2" opacity=".55"/>
+          <text x="865" y="400" text-anchor="middle" font-size="11" fill="#0f766e">sinyal 2,4 GHz masuk ke antena</text>
+          <rect x="715" y="35" width="300" height="375" rx="18" fill="none" stroke="#0f766e" stroke-width="2" stroke-dasharray="7 7"/>
+          <text x="865" y="24" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">AREA PENERIMAAN (RX)</text>
+          <text x="20" y="405" font-size="12" fill="#64748b">Catatan: panah hanya menunjukkan data/kontrol dan sinyal yang masuk ke antena. Tidak ada jalur pemancaran.</text>
+        </svg>
+        <figcaption><strong>Gambar 1.</strong> Topologi sistem. ESP32 mengendalikan dua NRF24 melalui SPI; kedua modul hanya berada dalam mode terima (RX).</figcaption>
+      </figure>
+
+      <div class="callout danger">
+        <div class="ic">⛔</div>
+        <p><strong>Batas aman yang tidak boleh dilanggar.</strong> Panduan ini <strong>tidak</strong> memuat <code>startConstCarrier()</code>, <code>write()</code>, <code>startWrite()</code>, atau perintah pengiriman payload apa pun. Jangan menambahkan fungsi pemancar ke sketsa ini. Tujuan praktikum adalah <em>mengukur</em>, bukan mengganggu.</p>
+      </div>
+
+      <h3>Hasil yang diharapkan</h3>
+      <ul class="checklist">
+        <li>Alat menyala, kedua modul terdeteksi, dan Serial Monitor menampilkan header CSV.</li>
+        <li>Setiap sweep menghasilkan 126 baris data occupancy (0–100%).</li>
+        <li>Terlihat perbedaan occupancy antara kanal Wi-Fi yang ramai dan yang sepi.</li>
+        <li>Mahasiswa dapat menjelaskan mengapa RPD hanya 1 bit dan bukan nilai dBm.</li>
+        <li>Laporan berisi grafik occupancy per kanal serta interpretasi yang masuk akal.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="tujuan">
+      <h2><span class="num">02</span> Tujuan praktikum</h2>
+      <p><strong>Tujuan umum:</strong> memahami perilaku spektrum 2,4 GHz dan keterbatasan sensor murah seperti NRF24L01+ melalui pengukuran pasif yang dapat dipertanggungjawabkan.</p>
+      <h3>Tujuan khusus</h3>
+      <ol>
+        <li>Menghubungkan dua modul NRF24L01+ ke ESP32 melalui satu bus SPI dengan CE/CSN terpisah.</li>
+        <li>Menjelaskan hubungan kanal NRF24 (0–125), frekuensi (2400–2525 MHz), kanal Wi-Fi, dan kanal advertising BLE.</li>
+        <li>Mengukur occupancy kanal menggunakan bit RPD dan memahami arti ambang ±−64 dBm.</li>
+        <li>Mengolah log CSV menjadi grafik dan membandingkan beberapa skenario pengukuran.</li>
+        <li>Menyimpulkan kanal mana yang relatif sepi dan mengapa hasilnya bisa berbeda antar lokasi/waktu.</li>
+      </ol>
+      <div class="callout info">
+        <div class="ic">🎯</div>
+        <p><strong>Capaian pembelajaran:</strong> mahasiswa mampu merancang, menjalankan, dan mengkritisi pengukuran spektrum sederhana, termasuk menyadari batas resolusi dan kalibrasi alat.</p>
+      </div>
+    </section>
+    <section class="card" id="teori">
+      <h2><span class="num">03</span> Dasar teori</h2>
+      <p class="lead-in">Bagian ini menjelaskan mengapa dua modul NRF24L01+ bisa “melihat” Wi-Fi dan Bluetooth, serta apa yang sebenarnya diukur oleh bit RPD.</p>
+
+      <h3>3.1 Pita 2,4 GHz dan kanal NRF24</h3>
+      <p>Pita ISM 2,4 GHz membentang dari <strong>2400 MHz</strong> sampai <strong>2483,5 MHz</strong>. NRF24L01+ dapat diatur pada kanal <strong>0–125</strong> dengan jarak 1 MHz. Hubungannya sederhana:</p>
+      <div class="callout info"><div class="ic">🧮</div><p><strong>f (MHz) = 2400 + kanal NRF</strong> &nbsp;⇔&nbsp; <strong>kanal NRF = f (MHz) − 2400</strong><br>Contoh: kanal NRF 12 = 2412 MHz; kanal NRF 80 = 2480 MHz.</p></div>
+      <p>Pada modul PA/LNA, penguatan LNA membantu sensitivitas terima, tetapi <em>tidak</em> mengubah fakta bahwa RPD tetap berupa indikator 1 bit, bukan pengukuran daya terkalibrasi.</p>
+
+      <h3>3.2 Wi-Fi 2,4 GHz</h3>
+      <p>Wi-Fi 2,4 GHz memakai lebar kanal 20 MHz. Kanal 1–13 memiliki frekuensi pusat:</p>
+      <div class="callout info"><div class="ic">📶</div><p><strong>f pusat Wi-Fi = 2412 + 5 × (kanal − 1) MHz</strong><br>Kanal Wi-Fi 1 = 2412 MHz (kanal NRF 12), kanal 6 = 2437 MHz (NRF 37), kanal 11 = 2462 MHz (NRF 62).</p></div>
+      <p>Karena lebar 20 MHz dan jarak pusat 5 MHz, kanal Wi-Fi saling tumpang tindih. Hanya kombinasi <strong>1, 6, dan 11</strong> yang tidak saling tumpang tindih di region 1–11. Inilah sebabnya scanner akan melihat occupancy tinggi melebar di sekitar pusat kanal yang ramai.</p>
+
+      <h3>3.3 Bluetooth Low Energy (BLE)</h3>
+      <p>BLE memiliki 40 kanal dengan jarak 2 MHz. Tiga kanal <em>advertising</em> berada di:</p>
+      <ul>
+        <li><strong>BLE 37</strong> = 2402 MHz → kanal NRF <strong>2</strong></li>
+        <li><strong>BLE 38</strong> = 2426 MHz → kanal NRF <strong>26</strong></li>
+        <li><strong>BLE 39</strong> = 2480 MHz → kanal NRF <strong>80</strong></li>
+      </ul>
+      <p>Kanal data BLE (0–36) tersebar di antara kanal advertising dan akan terlihat sebagai occupancy pada kanal NRF di sekitarnya.</p>
+
+      <h3>3.4 Bluetooth Classic</h3>
+      <p>Bluetooth Classic memakai 79 kanal berjarak 1 MHz pada 2402–2480 MHz, yaitu kanal NRF <strong>2–80</strong>. Karena pola hopping-nya cepat, satu kanal bisa terlihat “berkedip” dari satu sweep ke sweep berikutnya.</p>
+
+      <h3>3.5 Apa yang diukur RPD?</h3>
+      <p>Register <code>CD</code>/<code>RPD</code> (alamat 0x09) memberi indikator:</p>
+      <ul>
+        <li><strong>1</strong> jika ada carrier/sinyal FSK di atas kira-kira <strong>−64 dBm</strong> pada kanal tersebut;</li>
+        <li><strong>0</strong> jika tidak ada sinyal yang cukup kuat.</li>
+      </ul>
+      <p>Datasheet menyebutkan sinyal harus hadir minimal sekitar <strong>128 µs</strong> setelah radio masuk mode RX (waktu masuk RX sekitar 130 µs). Karena itu sketsa memakai jeda <code>SETTLE_US = 300</code> sebelum membaca RPD. RPD <strong>bukan</strong> nilai dBm, bukan RSSI, dan tidak bisa membedakan Wi-Fi, Bluetooth, atau microwave. Yang diukur hanyalah “ada sinyal kuat atau tidak”.</p>
+
+      <div class="callout warn">
+        <div class="ic">⚠️</div>
+        <p><strong>Keterbatasan penting:</strong> occupancy 70% bukan berarti sinyal 70% kuat. Artinya, pada 70% sampel, carrier terdeteksi di atas ambang. Perbedaan antena, orientasi, jarak, dan sensitivitas modul sangat memengaruhi angka.</p>
+      </div>
+
+      <figure class="figure">
+        <svg viewBox="0 0 1100 440" role="img" aria-labelledby="figSpektrum">
+          <title id="figSpektrum">Peta frekuensi 2,4 GHz untuk Wi-Fi, BLE, dan Bluetooth Classic</title>
+          <text x="70" y="30" font-size="16" font-weight="700" fill="#0f172a">Peta frekuensi 2,4 GHz (skala ilustratif)</text>
+          <text x="70" y="52" font-size="12" fill="#64748b">Kanal NRF24 = frekuensi (MHz) − 2400. Setiap kanal NRF berjarak 1 MHz.</text>
+
+          <rect x="93" y="95" width="230" height="60" rx="7" fill="#14b8a6" opacity=".16" stroke="#0f766e" stroke-width="1.5"/>
+          <rect x="380" y="95" width="230" height="60" rx="7" fill="#14b8a6" opacity=".16" stroke="#0f766e" stroke-width="1.5"/>
+          <rect x="668" y="95" width="230" height="60" rx="7" fill="#14b8a6" opacity=".16" stroke="#0f766e" stroke-width="1.5"/>
+          <text x="208" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">CH 1</text>
+          <text x="495" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">CH 6</text>
+          <text x="783" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#0f766e">CH 11</text>
+          <text x="208" y="132" text-anchor="middle" font-size="11" fill="#115e59">2412 MHz</text>
+          <text x="495" y="132" text-anchor="middle" font-size="11" fill="#115e59">2437 MHz</text>
+          <text x="783" y="132" text-anchor="middle" font-size="11" fill="#115e59">2462 MHz</text>
+
+          <g font-size="11" fill="#334155" text-anchor="middle">
+            <line x1="208" y1="158" x2="208" y2="172" stroke="#0f766e"/><text x="208" y="186">1</text>
+            <line x1="266" y1="158" x2="266" y2="172" stroke="#0f766e"/><text x="266" y="186">2</text>
+            <line x1="323" y1="158" x2="323" y2="172" stroke="#0f766e"/><text x="323" y="186">3</text>
+            <line x1="381" y1="158" x2="381" y2="172" stroke="#0f766e"/><text x="381" y="186">4</text>
+            <line x1="438" y1="158" x2="438" y2="172" stroke="#0f766e"/><text x="438" y="186">5</text>
+            <line x1="495" y1="158" x2="495" y2="172" stroke="#0f766e"/><text x="495" y="186">6</text>
+            <line x1="553" y1="158" x2="553" y2="172" stroke="#0f766e"/><text x="553" y="186">7</text>
+            <line x1="610" y1="158" x2="610" y2="172" stroke="#0f766e"/><text x="610" y="186">8</text>
+            <line x1="668" y1="158" x2="668" y2="172" stroke="#0f766e"/><text x="668" y="186">9</text>
+            <line x1="725" y1="158" x2="725" y2="172" stroke="#0f766e"/><text x="725" y="186">10</text>
+            <line x1="783" y1="158" x2="783" y2="172" stroke="#0f766e"/><text x="783" y="186">11</text>
+            <line x1="840" y1="158" x2="840" y2="172" stroke="#0f766e"/><text x="840" y="186">12</text>
+            <line x1="898" y1="158" x2="898" y2="172" stroke="#0f766e"/><text x="898" y="186">13</text>
+          </g>
+          <text x="70" y="186" font-size="11" fill="#64748b">Wi-Fi</text>
+
+          <text x="70" y="226" font-size="11" font-weight="600" fill="#7c3aed">BLE adv.</text>
+          <circle cx="93" cy="222" r="17" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+          <text x="93" y="227" text-anchor="middle" font-size="12" font-weight="700" fill="#6d28d9">37</text>
+          <circle cx="369" cy="222" r="17" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+          <text x="369" y="227" text-anchor="middle" font-size="12" font-weight="700" fill="#6d28d9">38</text>
+          <circle cx="990" cy="222" r="17" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+          <text x="990" y="227" text-anchor="middle" font-size="12" font-weight="700" fill="#6d28d9">39</text>
+          <text x="93" y="256" text-anchor="middle" font-size="11" fill="#6d28d9">2402 MHz</text>
+          <text x="369" y="256" text-anchor="middle" font-size="11" fill="#6d28d9">2426 MHz</text>
+          <text x="990" y="256" text-anchor="middle" font-size="11" fill="#6d28d9">2480 MHz</text>
+
+          <rect x="93" y="286" width="897" height="30" rx="7" fill="#0ea5e9" opacity=".18" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="541" y="306" text-anchor="middle" font-size="12" font-weight="600" fill="#075985">Bluetooth Classic • 79 kanal × 1 MHz • 2402–2480 MHz</text>
+
+          <line x1="70" y1="352" x2="1030" y2="352" stroke="#334155" stroke-width="2"/>
+          <g font-size="11" fill="#475569" text-anchor="middle">
+            <line x1="70" y1="352" x2="70" y2="360" stroke="#334155"/><text x="70" y="378">2400</text>
+            <line x1="208" y1="352" x2="208" y2="360" stroke="#334155"/><text x="208" y="378">2412</text>
+            <line x1="369" y1="352" x2="369" y2="360" stroke="#334155"/><text x="369" y="378">2426</text>
+            <line x1="530" y1="352" x2="530" y2="360" stroke="#334155"/><text x="530" y="378">2440</text>
+            <line x1="645" y1="352" x2="645" y2="360" stroke="#334155"/><text x="645" y="378">2450</text>
+            <line x1="760" y1="352" x2="760" y2="360" stroke="#334155"/><text x="760" y="378">2460</text>
+            <line x1="898" y1="352" x2="898" y2="360" stroke="#334155"/><text x="898" y="378">2472</text>
+            <line x1="990" y1="352" x2="990" y2="360" stroke="#334155"/><text x="990" y="378">2480</text>
+            <line x1="1030" y1="352" x2="1030" y2="360" stroke="#334155"/><text x="1030" y="378">2483,5</text>
+          </g>
+          <g font-size="10" fill="#64748b" text-anchor="middle">
+            <text x="70" y="406">ch 0</text>
+            <text x="208" y="406">ch 12</text>
+            <text x="369" y="406">ch 26</text>
+            <text x="530" y="406">ch 40</text>
+            <text x="645" y="406">ch 50</text>
+            <text x="760" y="406">ch 60</text>
+            <text x="898" y="406">ch 72</text>
+            <text x="990" y="406">ch 80</text>
+          </g>
+          <rect x="70" y="422" width="12" height="12" fill="#14b8a6" opacity=".45"/><text x="88" y="433" font-size="11" fill="#475569">Wi-Fi</text>
+          <rect x="145" y="422" width="12" height="12" fill="#7c3aed" opacity=".55"/><text x="163" y="433" font-size="11" fill="#475569">BLE</text>
+          <rect x="210" y="422" width="12" height="12" fill="#0284c7" opacity=".45"/><text x="228" y="433" font-size="11" fill="#475569">Bluetooth Classic</text>
+        </svg>
+        <figcaption><strong>Gambar 2.</strong> Peta kanal: Wi-Fi 20 MHz (contoh 1, 6, 11), tiga kanal advertising BLE, dan pita Bluetooth Classic. Skala dibuat ilustratif agar mudah dibaca.</figcaption>
+      </figure>
+    </section>
+    <section class="card" id="alat">
+      <h2><span class="num">04</span> Alat &amp; bahan</h2>
+      <p class="lead-in">Perangkat yang Anda miliki sudah cukup. Yang perlu ditambahkan hanyalah beberapa kabel jumper dan, sebaiknya, kapasitor dekopling.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>No</th><th>Komponen</th><th>Jumlah</th><th>Catatan</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>ESP32 DevKit (ESP32-D0WD-V3)</td><td>1</td><td>Board yang terdeteksi di COM8, flash 4 MB.</td></tr>
+            <tr><td>2</td><td>NRF24L01+ PA/LNA + antena SMA</td><td>1</td><td>Modul panjang dengan antena eksternal. Pasang antena sebelum dipakai.</td></tr>
+            <tr><td>3</td><td>NRF24L01+ modul biasa</td><td>1</td><td>Modul kecil. Periksa kabel yang tersolder agar tidak korsleting.</td></tr>
+            <tr><td>4</td><td>Kabel jumper female–female</td><td>±14</td><td>Usahakan pendek (&lt; 20 cm) untuk mengurangi noise SPI.</td></tr>
+            <tr><td>5</td><td>Breadboard</td><td>1</td><td>Opsional, memudahkan pembagian 3,3 V dan GND.</td></tr>
+            <tr><td>6</td><td>Kabel USB data</td><td>1</td><td>Bukan kabel charge-only. Sudah berfungsi karena board terdeteksi.</td></tr>
+            <tr><td>7</td><td>Kapasitor 10 µF + 100 nF</td><td>2</td><td>Dekopling VCC–GND di dekat modul NRF24. Sangat disarankan.</td></tr>
+            <tr><td>8</td><td>PC + Arduino IDE</td><td>1</td><td>Arduino IDE 2.3.10 dan core ESP32 3.3.12 sudah terpasang.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">📷</div>
+        <p><strong>Tentang foto hardware Anda:</strong> gambar awal menunjukkan NodeMCU ESP-12E. Board itu tidak dipakai di panduan ini karena ESP8266 tidak memiliki Bluetooth dan hanya memiliki satu bus SPI. Panduan ini memakai ESP32 yang sekarang terhubung di COM8.</p>
+      </div>
+
+      <div class="callout danger">
+        <div class="ic">⚡</div>
+        <p><strong>VCC hanya 3,3 V.</strong> Jangan pernah menghubungkan VCC NRF24 ke pin 5 V. Gunakan pin <code>3V3</code> ESP32. Pastikan GND ESP32 dan GND kedua modul tersambung bersama (common ground).</p>
+      </div>
+      <div class="callout warn">
+        <div class="ic">🔌</div>
+        <p><strong>Daya dan dekopling.</strong> Saat menerima, NRF24 menarik arus relatif kecil, tetapi regulator ESP32 bisa dipengaruhi lonjakan. Pasang kapasitor <strong>10 µF elektrolit</strong> dan <strong>100 nF keramik</strong> paralel antara VCC dan GND, sedekat mungkin dengan modul. Ini mengurangi pembacaan acak dan kegagalan <code>radio.begin()</code>.</p>
+      </div>
+    </section>
+
+    <section class="card" id="wiring">
+      <h2><span class="num">05</span> Wiring</h2>
+      <p class="lead-in">Kedua modul berbagi satu bus SPI (SCK, MISO, MOSI). Yang dipisahkan hanyalah pin <strong>CE</strong> dan <strong>CSN</strong> agar ESP32 bisa memilih modul mana yang sedang diajak bicara.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ESP32</th><th>NRF24 #1</th><th>NRF24 #2</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td><code>3V3</code></td><td><code>VCC</code></td><td><code>VCC</code></td><td>3,3 V saja. Tambahkan kapasitor dekopling.</td></tr>
+            <tr><td><code>GND</code></td><td><code>GND</code></td><td><code>GND</code></td><td>Common ground wajib.</td></tr>
+            <tr><td><code>GPIO18</code></td><td><code>SCK</code></td><td><code>SCK</code></td><td>Clock SPI (VSPI).</td></tr>
+            <tr><td><code>GPIO19</code></td><td><code>MISO</code></td><td><code>MISO</code></td><td>Data dari modul ke ESP32.</td></tr>
+            <tr><td><code>GPIO23</code></td><td><code>MOSI</code></td><td><code>MOSI</code></td><td>Data dari ESP32 ke modul.</td></tr>
+            <tr><td><code>GPIO5</code></td><td><code>CSN</code></td><td>—</td><td>Chip select modul #1.</td></tr>
+            <tr><td><code>GPIO4</code></td><td><code>CE</code></td><td>—</td><td>Chip enable modul #1.</td></tr>
+            <tr><td><code>GPIO17</code></td><td>—</td><td><code>CSN</code></td><td>Chip select modul #2.</td></tr>
+            <tr><td><code>GPIO16</code></td><td>—</td><td><code>CE</code></td><td>Chip enable modul #2.</td></tr>
+            <tr><td>—</td><td><code>IRQ</code></td><td><code>IRQ</code></td><td>Tidak dipakai pada proyek ini.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <div class="ic">🔎</div>
+        <p><strong>Urutan pin fisik bisa berbeda.</strong> Gambar di bawah adalah diagram logis, bukan tampak fisik modul. Selalu ikuti label yang tercetak pada PCB NRF24 (VCC, GND, CE, CSN, SCK, MOSI, MISO, IRQ). Jangan menebak dari posisi kabel.</p>
+      </div>
+      <figure class="figure">
+        <svg viewBox="0 0 1100 760" role="img" aria-labelledby="figWiring">
+          <title id="figWiring">Diagram wiring ESP32 ke dua modul NRF24L01+</title>
+          <text x="50" y="30" font-size="16" font-weight="700" fill="#0f172a">Wiring scanner pasif — ESP32 + 2× NRF24L01+</text>
+          <text x="1050" y="30" text-anchor="end" font-size="13" font-weight="700" fill="#dc2626">VCC = 3,3 V (JANGAN 5 V)</text>
+
+          <rect x="50" y="140" width="300" height="500" rx="16" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+          <text x="200" y="178" text-anchor="middle" font-size="20" font-weight="700" fill="#f8fafc">ESP32 DevKit</text>
+          <text x="200" y="200" text-anchor="middle" font-size="12" fill="#94a3b8">D0WD-V3 • 4 MB • VSPI</text>
+
+          <g font-size="12" fill="#e2e8f0" text-anchor="end">
+            <text x="338" y="214">3V3</text>
+            <text x="338" y="249">GND</text>
+            <text x="338" y="284">GPIO18</text>
+            <text x="338" y="319">GPIO19</text>
+            <text x="338" y="354">GPIO23</text>
+            <text x="338" y="389">GPIO5</text>
+            <text x="338" y="424">GPIO4</text>
+            <text x="338" y="459">GPIO17</text>
+            <text x="338" y="494">GPIO16</text>
+          </g>
+          <g>
+            <circle cx="350" cy="210" r="4" fill="#dc2626"/><circle cx="350" cy="245" r="4" fill="#111827"/>
+            <circle cx="350" cy="280" r="4" fill="#2563eb"/><circle cx="350" cy="315" r="4" fill="#2563eb"/>
+            <circle cx="350" cy="350" r="4" fill="#2563eb"/><circle cx="350" cy="385" r="4" fill="#d97706"/>
+            <circle cx="350" cy="420" r="4" fill="#16a34a"/><circle cx="350" cy="455" r="4" fill="#d97706"/>
+            <circle cx="350" cy="490" r="4" fill="#16a34a"/>
+          </g>
+
+          <rect x="730" y="60" width="300" height="300" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="880" y="92" text-anchor="middle" font-size="18" font-weight="700" fill="#065f46">NRF24 #1</text>
+          <text x="880" y="112" text-anchor="middle" font-size="11" fill="#047857">PA/LNA + antena SMA</text>
+          <g font-size="12" fill="#064e3b" text-anchor="start">
+            <text x="746" y="109">VCC</text><text x="746" y="144">GND</text><text x="746" y="179">SCK</text>
+            <text x="746" y="214">MISO</text><text x="746" y="249">MOSI</text><text x="746" y="284">CSN</text>
+            <text x="746" y="319">CE</text><text x="746" y="354">IRQ</text>
+          </g>
+          <g>
+            <circle cx="730" cy="105" r="4" fill="#dc2626"/><circle cx="730" cy="140" r="4" fill="#111827"/>
+            <circle cx="730" cy="175" r="4" fill="#2563eb"/><circle cx="730" cy="210" r="4" fill="#2563eb"/>
+            <circle cx="730" cy="245" r="4" fill="#2563eb"/><circle cx="730" cy="280" r="4" fill="#d97706"/>
+            <circle cx="730" cy="315" r="4" fill="#16a34a"/><circle cx="730" cy="350" r="4" fill="#64748b"/>
+          </g>
+
+          <rect x="730" y="400" width="300" height="300" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+          <text x="880" y="432" text-anchor="middle" font-size="18" font-weight="700" fill="#065f46">NRF24 #2</text>
+          <text x="880" y="452" text-anchor="middle" font-size="11" fill="#047857">modul tanpa antena</text>
+          <g font-size="12" fill="#064e3b" text-anchor="start">
+            <text x="746" y="449">VCC</text><text x="746" y="484">GND</text><text x="746" y="519">SCK</text>
+            <text x="746" y="554">MISO</text><text x="746" y="589">MOSI</text><text x="746" y="624">CSN</text>
+            <text x="746" y="659">CE</text><text x="746" y="694">IRQ</text>
+          </g>
+          <g>
+            <circle cx="730" cy="445" r="4" fill="#dc2626"/><circle cx="730" cy="480" r="4" fill="#111827"/>
+            <circle cx="730" cy="515" r="4" fill="#2563eb"/><circle cx="730" cy="550" r="4" fill="#2563eb"/>
+            <circle cx="730" cy="585" r="4" fill="#2563eb"/><circle cx="730" cy="620" r="4" fill="#d97706"/>
+            <circle cx="730" cy="655" r="4" fill="#16a34a"/><circle cx="730" cy="690" r="4" fill="#64748b"/>
+          </g>
+
+          <g fill="none" stroke-width="3">
+            <path d="M350 210 H410 V105 H730" stroke="#dc2626"/>
+            <path d="M410 210 V445 H730" stroke="#dc2626"/>
+            <path d="M350 245 H440 V140 H730" stroke="#111827"/>
+            <path d="M440 245 V480 H730" stroke="#111827"/>
+            <path d="M350 280 H470 V175 H730" stroke="#2563eb"/>
+            <path d="M470 280 V515 H730" stroke="#2563eb"/>
+            <path d="M350 315 H500 V210 H730" stroke="#2563eb"/>
+            <path d="M500 315 V550 H730" stroke="#2563eb"/>
+            <path d="M350 350 H530 V245 H730" stroke="#2563eb"/>
+            <path d="M530 350 V585 H730" stroke="#2563eb"/>
+            <path d="M350 385 H560 V280 H730" stroke="#d97706"/>
+            <path d="M350 420 H590 V315 H730" stroke="#16a34a"/>
+            <path d="M350 455 H620 V620 H730" stroke="#d97706"/>
+            <path d="M350 490 H650 V655 H730" stroke="#16a34a"/>
+          </g>
+          <g fill="#dc2626"><circle cx="410" cy="210" r="4"/></g>
+          <g fill="#111827"><circle cx="440" cy="245" r="4"/></g>
+          <g fill="#2563eb"><circle cx="470" cy="280" r="4"/><circle cx="500" cy="315" r="4"/><circle cx="530" cy="350" r="4"/></g>
+
+          <g stroke="#64748b" stroke-width="2">
+            <line x1="730" y1="350" x2="710" y2="350"/><line x1="705" y1="345" x2="715" y2="355"/><line x1="715" y1="345" x2="705" y2="355"/>
+            <line x1="730" y1="690" x2="710" y2="690"/><line x1="705" y1="685" x2="715" y2="695"/><line x1="715" y1="685" x2="705" y2="695"/>
+          </g>
+          <text x="700" y="338" text-anchor="end" font-size="10" fill="#64748b">NC</text>
+          <text x="700" y="678" text-anchor="end" font-size="10" fill="#64748b">NC</text>
+
+          <g font-size="11" fill="#475569">
+            <line x1="50" y1="728" x2="78" y2="728" stroke="#dc2626" stroke-width="3"/><text x="86" y="732">3,3 V</text>
+            <line x1="150" y1="728" x2="178" y2="728" stroke="#111827" stroke-width="3"/><text x="186" y="732">GND</text>
+            <line x1="245" y1="728" x2="273" y2="728" stroke="#2563eb" stroke-width="3"/><text x="281" y="732">SPI</text>
+            <line x1="335" y1="728" x2="363" y2="728" stroke="#d97706" stroke-width="3"/><text x="371" y="732">CSN</text>
+            <line x1="430" y1="728" x2="458" y2="728" stroke="#16a34a" stroke-width="3"/><text x="466" y="732">CE</text>
+            <text x="540" y="732" fill="#64748b">Garis menyilang tanpa titik = tidak tersambung.</text>
+          </g>
+        </svg>
+        <figcaption><strong>Gambar 3.</strong> Wiring kedua modul NRF24L01+ ke ESP32. SCK/MISO/MOSI berbagi bus; CE dan CSN terpisah. IRQ tidak dipakai.</figcaption>
+      </figure>
+
+      <h3>Langkah pemasangan</h3>
+      <div class="steps">
+        <div class="step"><strong>Lepas daya USB.</strong><span>Jangan memasang/mencabut kabel saat board menyala.</span></div>
+        <div class="step"><strong>Siapkan rel 3,3 V dan GND.</strong><span>Hubungkan pin <code>3V3</code> dan <code>GND</code> ESP32 ke breadboard, lalu bagi ke kedua modul.</span></div>
+        <div class="step"><strong>Pasang bus SPI.</strong><span>GPIO18→SCK, GPIO19→MISO, GPIO23→MOSI pada <em>kedua</em> modul.</span></div>
+        <div class="step"><strong>Pasang CE/CSN.</strong><span>Modul #1: GPIO4→CE, GPIO5→CSN. Modul #2: GPIO16→CE, GPIO17→CSN.</span></div>
+        <div class="step"><strong>Tambahkan kapasitor.</strong><span>10 µF dan 100 nF paralel antara VCC dan GND di dekat modul. Perhatikan polaritas elektrolit.</span></div>
+        <div class="step"><strong>Periksa hubungan pendek.</strong><span>Ukur dengan multimeter: tidak boleh ada hubungan singkat antara 3V3 dan GND. Periksa juga kabel modul kecil Anda yang tersolder.</span></div>
+        <div class="step"><strong>Pasang antena, lalu hubungkan USB.</strong><span>Antena pada modul PA/LNA sebaiknya terpasang. Board seharusnya muncul sebagai COM8.</span></div>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">🧷</div>
+        <p><strong>Catatan pin:</strong> GPIO16 dan GPIO17 aman untuk ESP32 WROOM/D0WD-V3. Jika kelak memakai modul WROVER dengan PSRAM, pin tersebut bisa dipakai PSRAM sehingga perlu diganti dan kode disesuaikan.</p>
+      </div>
+      <div class="callout warn">
+        <div class="ic">🧪</div>
+        <p><strong>Modul #2 Anda:</strong> pada foto terlihat ada kabel yang tersolder di salah satu pin. Pastikan sambungan itu tidak menyentuh pin tetangga dan tidak mengalami korsleting. Jika modul #2 bermasalah, scanner masih bisa dijalankan dengan satu modul untuk seluruh kanal 0–125 (perlu penyesuaian kecil pada pemanggilan <code>pindaiRentang</code>).</p>
+      </div>
+    </section>
+    <section class="card" id="software">
+      <h2><span class="num">06</span> Software &amp; pengaturan</h2>
+      <p class="lead-in">Semua perkakas utama sudah tersedia di komputer Anda. Yang belum hanya library RF24.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Komponen</th><th>Status</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td>Arduino IDE</td><td><span class="tag green">Siap</span></td><td>Versi 2.3.10 terpasang.</td></tr>
+            <tr><td>Core ESP32</td><td><span class="tag green">Siap</span></td><td><code>esp32:esp32</code> versi 3.3.12.</td></tr>
+            <tr><td>Driver CP210x</td><td><span class="tag green">Siap</span></td><td>Board terdeteksi di COM8.</td></tr>
+            <tr><td>Library RF24</td><td><span class="tag amber">Perlu dipasang</span></td><td>Gunakan Library Manager, cari “RF24” oleh TMRh20.</td></tr>
+            <tr><td>Library ezButton</td><td><span class="tag blue">Tidak dipakai</span></td><td>Tidak diperlukan untuk scanner pasif.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>6.1 Pasang library RF24</h3>
+      <div class="steps">
+        <div class="step"><strong>Buka Library Manager.</strong><span>Arduino IDE → ikon buku di sidebar kiri → tab <em>Libraries</em>.</span></div>
+        <div class="step"><strong>Cari “RF24”.</strong><span>Pilih hasil dari <strong>TMRh20</strong> (bukan RF24Network/RF24Mesh).</span></div>
+        <div class="step"><strong>Klik Install.</strong><span>Tunggu hingga selesai. Versi 1.4.x atau lebih baru sudah cukup.</span></div>
+        <div class="step"><strong>Verifikasi.</strong><span>File → Examples → RF24 → scanner seharusnya muncul, tanda library terpasang.</span></div>
+      </div>
+
+      <h3>6.2 Pengaturan board</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pengaturan</th><th>Nilai</th></tr></thead>
+          <tbody>
+            <tr><td>Board</td><td>ESP32 Dev Module</td></tr>
+            <tr><td>Port</td><td>COM8 (Silicon Labs CP210x)</td></tr>
+            <tr><td>Upload Speed</td><td>921600 (turunkan ke 115200 jika gagal)</td></tr>
+            <tr><td>Flash Size</td><td>4 MB (32 Mb)</td></tr>
+            <tr><td>Partition Scheme</td><td>Default 4 MB with spiffs</td></tr>
+            <tr><td>CPU Frequency</td><td>240 MHz</td></tr>
+            <tr><td>Programmer</td><td>Esptool</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>6.3 Upload</h3>
+      <div class="steps">
+        <div class="step"><strong>Buka sketsa baru.</strong><span>File → New Sketch, lalu simpan sebagai <code>Scanner24GHz</code>.</span></div>
+        <div class="step"><strong>Salin kode dari Bagian 07.</strong><span>Ganti seluruh isi sketsa dengan kode di bawah. Jangan menambahkan fungsi transmit.</span></div>
+        <div class="step"><strong>Pilih board dan port.</strong><span>Tools → Board → esp32 → ESP32 Dev Module; Tools → Port → COM8.</span></div>
+        <div class="step"><strong>Klik Upload.</strong><span>Jika muncul “Connecting...”, tahan tombol BOOT sebentar lalu lepas setelah proses mulai.</span></div>
+        <div class="step"><strong>Buka Serial Monitor.</strong><span>Set baud <strong>115200</strong>. Anda akan melihat header CSV dan data sweep.</span></div>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">💡</div>
+        <p><strong>Tips upload:</strong> tutup Serial Monitor lain yang memakai COM8. Di Arduino IDE 2.x, upload biasanya otomatis menutup monitor, tetapi aplikasi serial lain bisa mengunci port.</p>
+      </div>
+    </section>
+
+    <section class="card" id="kode">
+      <h2><span class="num">07</span> Kode program lengkap</h2>
+      <p class="lead-in">Sketsa berikut hanya memakai mode terima. Tidak ada pemanggilan <code>write()</code>, <code>startWrite()</code>, atau <code>startConstCarrier()</code>. Kedua modul hanya diaktifkan untuk menerima (<code>startListening()</code>) lalu dibaca bit RPD-nya.</p>
+      <div class="callout danger">
+        <div class="ic">🛑</div>
+        <p><strong>Jangan menambahkan fungsi pemancar.</strong> Jika Anda menambahkan perintah transmit, alat ini berubah menjadi jammer dan tidak lagi sesuai dengan tujuan praktikum maupun batas hukum yang berlaku.</p>
+      </div>
+
+      <pre><code>/*
+  ============================================================
+  Scanner Spektrum 2,4 GHz — RECEIVE-ONLY (PASSIVE)
+  ESP32 + 2x NRF24L01+
+  ------------------------------------------------------------
+  Sketsa ini HANYA mendeteksi carrier (RX).
+  Tidak ada pemancaran: tidak ada write(), startWrite(),
+  startConstCarrier(), atau pengiriman payload apa pun.
+  ============================================================
+*/
+
+#include &lt;SPI.h&gt;
+#include &lt;RF24.h&gt;
+
+// ---------- Pin SPI ESP32 (VSPI) ----------
+const uint8_t PIN_SCK  = 18;
+const uint8_t PIN_MISO = 19;
+const uint8_t PIN_MOSI = 23;
+
+// ---------- Modul NRF24 #1 ----------
+const uint8_t CE1  = 4;
+const uint8_t CSN1 = 5;
+
+// ---------- Modul NRF24 #2 ----------
+const uint8_t CE2  = 16;
+const uint8_t CSN2 = 17;
+
+RF24 radio1(CE1, CSN1);
+RF24 radio2(CE2, CSN2);
+
+// ---------- Parameter pemindaian ----------
+const uint8_t  CH_MIN    = 0;    // 2400 MHz
+const uint8_t  CH_MAX    = 125;  // 2525 MHz
+const uint8_t  SAMPLES   = 40;   // sampel per kanal
+const uint16_t SETTLE_US = 300;  // waktu RX sebelum baca RPD (min. 258 us)
+const uint16_t GAP_US    = 50;   // jeda antar sampel
+
+uint8_t occupancy[126];          // 0..100 (%)
+
+const char* levelDari(uint8_t pct) {
+  if (pct &gt;= 70) return "SANGAT_RAMAI";
+  if (pct &gt;= 40) return "RAMAI";
+  if (pct &gt;= 10) return "SEDANG";
+  return "SEPI";
+}
+
+int wifiDariNrf(int ch) {
+  for (int w = 1; w &lt;= 13; w++) {
+    int center = 12 + (w - 1) * 5;
+    if (ch == center) return w;
+  }
+  return -1;
+}
+
+int bleDariNrf(int ch) {
+  if (ch == 2)  return 37;
+  if (ch == 26) return 38;
+  if (ch == 80) return 39;
+  return -1;
+}
+
+void siapkanRadio(RF24 &amp;r) {
+  r.setDataRate(RF24_1MBPS);
+  r.stopListening();
+  r.flush_rx();
+}
+
+void pindaiRentang(RF24 &amp;r, uint8_t dari, uint8_t sampai) {
+  for (uint8_t ch = dari; ch &lt;= sampai; ch++) {
+    r.setChannel(ch);
+    uint16_t kena = 0;
+
+    for (uint8_t i = 0; i &lt; SAMPLES; i++) {
+      r.startListening();
+      delayMicroseconds(SETTLE_US);
+      if (r.testRPD()) kena++;
+      r.stopListening();
+      delayMicroseconds(GAP_US);
+    }
+
+    occupancy[ch] = (uint8_t)((kena * 100UL) / SAMPLES);
+  }
+}
+
+void cetakHeaderCsv() {
+  Serial.println("waktu_ms,nrf_ch,freq_mhz,wifi_ch,ble_ch,occupancy_pct,level");
+}
+
+void cetakCsv(unsigned long durasi_ms) {
+  for (uint8_t ch = CH_MIN; ch &lt;= CH_MAX; ch++) {
+    Serial.print(millis());            Serial.print(',');
+    Serial.print(ch);                  Serial.print(',');
+    Serial.print(2400 + ch);           Serial.print(',');
+    int w = wifiDariNrf(ch);
+    if (w &gt; 0) Serial.print(w);
+    Serial.print(',');
+    int b = bleDariNrf(ch);
+    if (b &gt; 0) Serial.print(b);
+    Serial.print(',');
+    Serial.print(occupancy[ch]);       Serial.print(',');
+    Serial.println(levelDari(occupancy[ch]));
+  }
+  Serial.print("# durasi_sweep_ms=");
+  Serial.println(durasi_ms);
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(600);
+
+  Serial.println();
+  Serial.println("==============================================");
+  Serial.println(" Scanner 2,4 GHz — RECEIVE-ONLY (PASSIVE)");
+  Serial.println(" ESP32 + 2x NRF24L01+");
+  Serial.println(" Tidak memancarkan sinyal apa pun.");
+  Serial.println("==============================================");
+
+  SPI.begin(PIN_SCK, PIN_MISO, PIN_MOSI, -1);
+
+  bool ok1 = radio1.begin(&amp;SPI);
+  bool ok2 = radio2.begin(&amp;SPI);
+
+  Serial.printf("Modul #1 (CE=%u, CSN=%u): %s\n", CE1, CSN1, ok1 ? "OK" : "GAGAL");
+  Serial.printf("Modul #2 (CE=%u, CSN=%u): %s\n", CE2, CSN2, ok2 ? "OK" : "GAGAL");
+
+  if (!ok1 || !ok2) {
+    Serial.println("PERIKSA: VCC 3.3V, GND, SCK/MISO/MOSI, CE/CSN.");
+    Serial.println("Pemindaian dihentikan.");
+    while (true) delay(1000);
+  }
+
+  siapkanRadio(radio1);
+  siapkanRadio(radio2);
+
+  Serial.println("Mulai memindai 0..125 (2400..2525 MHz)...");
+  Serial.println("Biarkan antena terpasang. Jangan menambahkan fungsi TX.");
+  Serial.println();
+  cetakHeaderCsv();
+}
+
+void loop() {
+  unsigned long t0 = millis();
+
+  // Keduanya tetap dalam mode RX; rentang dibagi agar lebih cepat.
+  pindaiRentang(radio1, 0, 62);
+  pindaiRentang(radio2, 63, 125);
+
+  unsigned long durasi = millis() - t0;
+  cetakCsv(durasi);
+  delay(1500);
+}
+</code></pre>
+
+      <h3>7.1 Parameter yang bisa diubah</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Konstanta</th><th>Nilai awal</th><th>Efek</th></tr></thead>
+          <tbody>
+            <tr><td><code>SAMPLES</code></td><td>40</td><td>Makin besar makin stabil, tetapi sweep makin lama. Coba 20–100.</td></tr>
+            <tr><td><code>SETTLE_US</code></td><td>300</td><td>Jangan turun di bawah ±258 µs; 300 µs memberi margin.</td></tr>
+            <tr><td><code>GAP_US</code></td><td>50</td><td>Jeda antar sampel; boleh dinaikkan bila hasil terlalu “berkedip”.</td></tr>
+            <tr><td><code>CH_MIN</code>/<code>CH_MAX</code></td><td>0/125</td><td>Batasi ke 0–83 bila hanya ingin fokus pita Wi-Fi 2,4 GHz.</td></tr>
+            <tr><td>Pin CE/CSN</td><td>4/5 dan 16/17</td><td>Ubah jika wiring berbeda; pastikan tidak bentrok dengan pin lain.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="ic">📋</div>
+        <p><strong>Cara menyalin:</strong> klik di dalam kotak kode, tekan <code>Ctrl+A</code> lalu <code>Ctrl+C</code>. Tempel ke sketsa Arduino yang baru. Jangan mencampur dengan kode <code>MyJammer</code> yang lama.</p>
+      </div>
+      <div class="callout ok">
+        <div class="ic">📁</div>
+        <p><strong>File siap pakai:</strong> sketsa yang sama juga disimpan di <code>Scanner24GHz/Scanner24GHz.ino</code>. Buka folder itu langsung di Arduino IDE, lalu upload.</p>
+      </div>
+    </section>
+    <section class="card" id="cara-kerja">
+      <h2><span class="num">08</span> Cara kerja kode</h2>
+      <p class="lead-in">Alur program dibuat sederhana agar mudah dijelaskan saat presentasi praktikum.</p>
+      <div class="steps">
+        <div class="step"><strong>Inisialisasi Serial dan SPI.</strong><span>Serial 115200 untuk log; SPI memakai pin VSPI 18/19/23.</span></div>
+        <div class="step"><strong>Inisialisasi dua objek RF24.</strong><span><code>radio1</code> memakai CE=4, CSN=5; <code>radio2</code> memakai CE=16, CSN=17.</span></div>
+        <div class="step"><strong>Verifikasi modul.</strong><span><code>begin()</code> mengembalikan <code>true</code> jika modul merespons. Jika gagal, program berhenti dan menampilkan pesan.</span></div>
+        <div class="step"><strong>Sweep kanal 0–62 dengan modul #1.</strong><span>Setiap kanal diambil 40 sampel. Untuk tiap sampel: masuk RX, tunggu 300 µs, baca <code>testRPD()</code>, keluar RX.</span></div>
+        <div class="step"><strong>Sweep kanal 63–125 dengan modul #2.</strong><span>Rentang dibagi agar satu sweep lebih cepat; keduanya tetap hanya menerima.</span></div>
+        <div class="step"><strong>Hitung occupancy.</strong><span><code>occupancy = jumlah sampel terdeteksi / 40 × 100%</code>.</span></div>
+        <div class="step"><strong>Cetak CSV dan ulangi.</strong><span>Setiap baris berisi waktu, kanal, frekuensi, label Wi-Fi/BLE, occupancy, dan level. Jeda 1,5 detik sebelum sweep berikutnya.</span></div>
+      </div>
+
+      <figure class="figure">
+        <svg viewBox="0 0 900 560" role="img" aria-labelledby="figFlow">
+          <title id="figFlow">Flowchart program scanner pasif</title>
+          <defs>
+            <marker id="fArrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/></marker>
+            <marker id="fArrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#b91c1c"/></marker>
+          </defs>
+          <rect x="330" y="15" width="240" height="48" rx="24" fill="#0f172a"/>
+          <text x="450" y="45" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Mulai</text>
+          <line x1="450" y1="63" x2="450" y2="93" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+
+          <rect x="290" y="95" width="320" height="62" rx="10" fill="#f0fdfa" stroke="#0f766e" stroke-width="2"/>
+          <text x="450" y="120" text-anchor="middle" font-size="13" font-weight="600" fill="#115e59">Inisialisasi Serial, SPI,</text>
+          <text x="450" y="140" text-anchor="middle" font-size="13" fill="#115e59">radio1 dan radio2</text>
+          <line x1="450" y1="157" x2="450" y2="183" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+
+          <polygon points="450,185 620,230 450,275 280,230" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+          <text x="450" y="225" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">Kedua modul</text>
+          <text x="450" y="243" text-anchor="middle" font-size="13" font-weight="600" fill="#92400e">OK?</text>
+          <line x1="620" y1="230" x2="655" y2="230" stroke="#b91c1c" stroke-width="2" marker-end="url(#fArrowRed)"/>
+          <text x="637" y="220" text-anchor="middle" font-size="11" fill="#b91c1c">tidak</text>
+          <rect x="660" y="205" width="210" height="50" rx="8" fill="#fef2f2" stroke="#b91c1c" stroke-width="2"/>
+          <text x="765" y="235" text-anchor="middle" font-size="12" fill="#991b1b">Tampilkan error &amp; stop</text>
+
+          <line x1="450" y1="275" x2="450" y2="307" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+          <text x="465" y="296" font-size="11" fill="#0f766e">ya</text>
+
+          <rect x="290" y="310" width="320" height="55" rx="10" fill="#ecfeff" stroke="#0e7490" stroke-width="2"/>
+          <text x="450" y="343" text-anchor="middle" font-size="13" font-weight="600" fill="#155e75">Scan kanal 0–62 (NRF #1)</text>
+          <line x1="450" y1="365" x2="450" y2="387" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+
+          <rect x="290" y="390" width="320" height="55" rx="10" fill="#ecfeff" stroke="#0e7490" stroke-width="2"/>
+          <text x="450" y="423" text-anchor="middle" font-size="13" font-weight="600" fill="#155e75">Scan kanal 63–125 (NRF #2)</text>
+          <line x1="450" y1="445" x2="450" y2="467" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+
+          <rect x="270" y="470" width="360" height="58" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+          <text x="450" y="495" text-anchor="middle" font-size="13" font-weight="600" fill="#166534">Hitung occupancy %</text>
+          <text x="450" y="515" text-anchor="middle" font-size="12" fill="#166534">cetak CSV ke Serial Monitor</text>
+
+          <path d="M270 499 H230 V337 H287" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#fArrow)"/>
+          <text x="222" y="420" text-anchor="middle" font-size="11" fill="#0f766e" transform="rotate(-90 222 420)">delay 1,5 s</text>
+        </svg>
+        <figcaption><strong>Gambar 4.</strong> Flowchart satu siklus pemindaian. Kedua modul hanya masuk mode RX; tidak ada cabang transmit.</figcaption>
+      </figure>
+
+      <h3>Mengapa hasilnya bisa berbeda-beda?</h3>
+      <ul>
+        <li><strong>Ambang tetap −64 dBm:</strong> sinyal lemah tidak terdeteksi, sinyal kuat selalu terdeteksi.</li>
+        <li><strong>Lebar kanal NRF 1 MHz:</strong> Wi-Fi 20 MHz akan terlihat melebar ke kanal-kanal tetangga.</li>
+        <li><strong>Antena dan polarisasi:</strong> memutar antena dapat mengubah angka secara signifikan.</li>
+        <li><strong>Waktu:</strong> lalu lintas Wi-Fi berubah sesuai aktivitas (streaming, kelas, jam sibuk).</li>
+        <li><strong>Modul PA/LNA:</strong> sensitivitas lebih tinggi, tetapi bisa saturasi bila terlalu dekat router.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="prosedur">
+      <h2><span class="num">09</span> Prosedur praktikum</h2>
+      <p class="lead-in">Estimasi waktu: 60–90 menit. Lakukan minimal tiga skenario agar data bisa dibandingkan.</p>
+
+      <h3>9.1 Sebelum mulai</h3>
+      <ul class="checklist">
+        <li>Wiring sudah diperiksa dan tidak ada hubungan singkat 3V3–GND.</li>
+        <li>Antena modul PA/LNA sudah terpasang.</li>
+        <li>Library RF24 sudah terpasang dan contoh <em>scanner</em> muncul di menu Examples.</li>
+        <li>Board dan port sudah dipilih dengan benar (ESP32 Dev Module, COM8).</li>
+        <li>Serial Monitor diset 115200 baud.</li>
+      </ul>
+
+      <h3>9.2 Langkah pengukuran</h3>
+      <div class="steps">
+        <div class="step"><strong>Upload sketsa.</strong><span>Pastikan tidak ada error kompilasi. Catat versi library RF24 yang dipakai.</span></div>
+        <div class="step"><strong>Amati pesan inisialisasi.</strong><span>Kedua modul harus “OK”. Jika salah satu “GAGAL”, periksa wiring sebelum lanjut.</span></div>
+        <div class="step"><strong>Biarkan satu sweep selesai.</strong><span>Tunggu hingga muncul baris <code># durasi_sweep_ms=...</code>. Catat durasinya.</span></div>
+        <div class="step"><strong>Simpan log.</strong><span>Klik kanan di Serial Monitor → pilih opsi simpan/copy, atau salin ke editor teks. Simpan sebagai <code>data_skenario_A.csv</code>.</span></div>
+        <div class="step"><strong>Ulangi 3 kali per skenario.</strong><span>Masing-masing minimal 60 detik agar variasi waktu tertangkap.</span></div>
+        <div class="step"><strong>Ubah posisi/orientasi.</strong><span>Catat jarak ke router, sudut antena, dan kondisi ruangan.</span></div>
+        <div class="step"><strong>Ganti skenario.</strong><span>Ulangi langkah 3–6 untuk skenario B dan C pada tabel di bawah.</span></div>
+        <div class="step"><strong>Matikan alat.</strong><span>Cabut USB dengan aman, lalu rapikan wiring.</span></div>
+      </div>
+
+      <h3>9.3 Skenario minimal</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kode</th><th>Skenario</th><th>Kondisi</th><th>Tujuan</th></tr></thead>
+          <tbody>
+            <tr><td>A</td><td>Baseline</td><td>Jauh dari router (±5 m), ruangan relatif sepi.</td><td>Mengukur latar belakang spektrum.</td></tr>
+            <tr><td>B</td><td>Dekat router</td><td>±1 m dari router, antena sejajar.</td><td>Melihat kanal Wi-Fi utama dan sidelobe-nya.</td></tr>
+            <tr><td>C</td><td>Aktivitas tinggi</td><td>Ada streaming/video call/transfer file saat pengukuran.</td><td>Membandingkan occupancy saat trafik naik.</td></tr>
+            <tr><td>D</td><td>Orientasi antena</td><td>Skenario B, antena diputar 90°.</td><td>Menguji pengaruh polarisasi.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <div class="ic">🧭</div>
+        <p><strong>Konsistensi:</strong> letakkan alat pada posisi dan ketinggian yang sama untuk setiap pengulangan. Perubahan kecil pada posisi kabel/antena bisa mengubah hasil.</p>
+      </div>
+    </section>
+    <section class="card" id="data">
+      <h2><span class="num">10</span> Format data &amp; analisis</h2>
+      <p class="lead-in">Log berbentuk CSV agar mudah diimpor ke Excel/Google Sheets dan diolah menjadi grafik.</p>
+
+      <h3>10.1 Kolom CSV</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kolom</th><th>Contoh</th><th>Arti</th></tr></thead>
+          <tbody>
+            <tr><td><code>waktu_ms</code></td><td>12045</td><td>Waktu sejak board menyala (milidetik).</td></tr>
+            <tr><td><code>nrf_ch</code></td><td>12</td><td>Kanal NRF24 (0–125).</td></tr>
+            <tr><td><code>freq_mhz</code></td><td>2412</td><td>Frekuensi pusat kanal (MHz).</td></tr>
+            <tr><td><code>wifi_ch</code></td><td>1</td><td>Label kanal Wi-Fi jika kanal NRF tepat berada di pusat kanal Wi-Fi; kosong jika bukan.</td></tr>
+            <tr><td><code>ble_ch</code></td><td>37</td><td>Label kanal advertising BLE (37/38/39); kosong jika bukan.</td></tr>
+            <tr><td><code>occupancy_pct</code></td><td>78</td><td>Persentase sampel yang mendeteksi carrier (0–100).</td></tr>
+            <tr><td><code>level</code></td><td>SANGAT_RAMAI</td><td>Kategori ringkas berdasarkan ambang.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>10.2 Contoh log</h3>
+      <pre><code>waktu_ms,nrf_ch,freq_mhz,wifi_ch,ble_ch,occupancy_pct,level
+12045,0,2400,,,0,SEPI
+12046,1,2401,,,0,SEPI
+12047,2,2402,,37,22,SEDANG
+12048,3,2403,,,18,SEDANG
+12057,12,2412,1,,78,SANGAT_RAMAI
+12082,26,2426,,38,41,RAMAI
+12136,37,2437,6,,65,RAMAI
+12186,62,2462,11,,55,RAMAI
+12236,80,2480,,39,33,SEDANG
+12237,81,2481,,,12,SEDANG
+# durasi_sweep_ms=2310</code></pre>
+      <p class="note-small">Baris yang diawali <code>#</code> adalah komentar dan bisa diabaikan saat impor.</p>
+
+      <h3>10.3 Impor ke spreadsheet</h3>
+      <div class="steps">
+        <div class="step"><strong>Simpan log sebagai .csv.</strong><span>Di Serial Monitor, salin seluruh teks ke Notepad, lalu Save As dengan encoding UTF-8 dan ekstensi <code>.csv</code>.</span></div>
+        <div class="step"><strong>Buka di Excel/Google Sheets.</strong><span>Pilih delimiter koma. Pastikan kolom terpisah dengan benar.</span></div>
+        <div class="step"><strong>Buang baris komentar.</strong><span>Hapus baris yang diawali <code>#</code> agar tidak mengganggu pivot/chart.</span></div>
+        <div class="step"><strong>Buat pivot.</strong><span>Baris = <code>nrf_ch</code>; nilai = rata-rata <code>occupancy_pct</code>; filter = skenario/pengulangan.</span></div>
+        <div class="step"><strong>Buat grafik.</strong><span>Column chart: sumbu X = kanal NRF, sumbu Y = occupancy rata-rata. Beri judul dan satuan yang jelas.</span></div>
+      </div>
+
+      <h3>10.4 Ambang interpretasi</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Occupancy</th><th>Label</th><th>Interpretasi</th></tr></thead>
+          <tbody>
+            <tr><td>0–9%</td><td><span class="tag green">SEPI</span></td><td>Jarang ada carrier kuat; kandidat kanal untuk komunikasi.</td></tr>
+            <tr><td>10–39%</td><td><span class="tag blue">SEDANG</span></td><td>Ada aktivitas, tetapi masih ada celah.</td></tr>
+            <tr><td>40–69%</td><td><span class="tag amber">RAMAI</span></td><td>Aktivitas cukup padat; kemungkinan Wi-Fi/BLE aktif.</td></tr>
+            <tr><td>70–100%</td><td><span class="tag red">SANGAT_RAMAI</span></td><td>Kanal sangat sibuk atau modul mengalami saturasi karena terlalu dekat sumber.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <figure class="figure">
+        <svg viewBox="0 0 1000 380" role="img" aria-labelledby="figContoh">
+          <title id="figContoh">Contoh grafik occupancy per kanal Wi-Fi</title>
+          <text x="70" y="34" font-size="15" font-weight="700" fill="#0f172a">Contoh output: occupancy per kanal Wi-Fi 1–13</text>
+          <text x="70" y="54" font-size="12" fill="#64748b">Data ilustrasi, bukan hasil pengukuran Anda.</text>
+
+          <g stroke="#e2e8f0" stroke-width="1">
+            <line x1="70" y1="300" x2="930" y2="300"/>
+            <line x1="70" y1="242.5" x2="930" y2="242.5"/>
+            <line x1="70" y1="185" x2="930" y2="185"/>
+            <line x1="70" y1="127.5" x2="930" y2="127.5"/>
+            <line x1="70" y1="70" x2="930" y2="70"/>
+          </g>
+          <line x1="70" y1="70" x2="70" y2="300" stroke="#334155" stroke-width="2"/>
+          <line x1="70" y1="300" x2="930" y2="300" stroke="#334155" stroke-width="2"/>
+          <g font-size="11" fill="#64748b" text-anchor="end">
+            <text x="60" y="304">0</text><text x="60" y="246">25</text><text x="60" y="189">50</text>
+            <text x="60" y="131">75</text><text x="60" y="74">100</text>
+          </g>
+          <text x="20" y="190" font-size="12" fill="#475569" transform="rotate(-90 20 190)" text-anchor="middle">Occupancy (%)</text>
+
+          <g>
+            <rect x="95" y="134.4" width="48" height="165.6" fill="#dc2626" opacity=".82"/><text x="119" y="127" text-anchor="middle" font-size="11" fill="#991b1b">72</text>
+            <rect x="159" y="196.5" width="48" height="103.5" fill="#d97706" opacity=".82"/><text x="183" y="189" text-anchor="middle" font-size="11" fill="#92400e">45</text>
+            <rect x="223" y="231" width="48" height="69" fill="#0d9488" opacity=".82"/><text x="247" y="224" text-anchor="middle" font-size="11" fill="#115e59">30</text>
+            <rect x="287" y="258.6" width="48" height="41.4" fill="#0d9488" opacity=".82"/><text x="311" y="252" text-anchor="middle" font-size="11" fill="#115e59">18</text>
+            <rect x="351" y="272.4" width="48" height="27.6" fill="#0d9488" opacity=".82"/><text x="375" y="266" text-anchor="middle" font-size="11" fill="#115e59">12</text>
+            <rect x="415" y="150.5" width="48" height="149.5" fill="#d97706" opacity=".82"/><text x="439" y="143" text-anchor="middle" font-size="11" fill="#92400e">65</text>
+            <rect x="479" y="208" width="48" height="92" fill="#d97706" opacity=".82"/><text x="503" y="201" text-anchor="middle" font-size="11" fill="#92400e">40</text>
+            <rect x="543" y="249.4" width="48" height="50.6" fill="#0d9488" opacity=".82"/><text x="567" y="243" text-anchor="middle" font-size="11" fill="#115e59">22</text>
+            <rect x="607" y="265.5" width="48" height="34.5" fill="#0d9488" opacity=".82"/><text x="631" y="259" text-anchor="middle" font-size="11" fill="#115e59">15</text>
+            <rect x="671" y="277" width="48" height="23" fill="#94a3b8" opacity=".82"/><text x="695" y="270" text-anchor="middle" font-size="11" fill="#475569">10</text>
+            <rect x="735" y="173.5" width="48" height="126.5" fill="#d97706" opacity=".82"/><text x="759" y="166" text-anchor="middle" font-size="11" fill="#92400e">55</text>
+            <rect x="799" y="231" width="48" height="69" fill="#0d9488" opacity=".82"/><text x="823" y="224" text-anchor="middle" font-size="11" fill="#115e59">30</text>
+            <rect x="863" y="254" width="48" height="46" fill="#0d9488" opacity=".82"/><text x="887" y="247" text-anchor="middle" font-size="11" fill="#115e59">20</text>
+          </g>
+          <g font-size="11" fill="#475569" text-anchor="middle">
+            <text x="119" y="320">1</text><text x="183" y="320">2</text><text x="247" y="320">3</text>
+            <text x="311" y="320">4</text><text x="375" y="320">5</text><text x="439" y="320">6</text>
+            <text x="503" y="320">7</text><text x="567" y="320">8</text><text x="631" y="320">9</text>
+            <text x="695" y="320">10</text><text x="759" y="320">11</text><text x="823" y="320">12</text>
+            <text x="887" y="320">13</text>
+          </g>
+          <text x="500" y="345" text-anchor="middle" font-size="12" fill="#475569">Kanal Wi-Fi</text>
+          <text x="70" y="365" font-size="11" fill="#64748b">Contoh: kanal 1 sangat ramai (72%), kanal 10 relatif sepi (10%).</text>
+        </svg>
+        <figcaption><strong>Gambar 5.</strong> Contoh visualisasi data. Gunakan format yang sama untuk laporan Anda, tetapi dengan data hasil pengukuran sendiri.</figcaption>
+      </figure>
+
+      <h3>10.5 Yang dianalisis</h3>
+      <ul>
+        <li>Rata-rata occupancy per kanal untuk setiap skenario (A–D).</li>
+        <li>Lima kanal paling ramai dan lima kanal paling sepi.</li>
+        <li>Perbandingan kanal Wi-Fi 1, 6, dan 11 (yang tidak saling tumpang tindih).</li>
+        <li>Occupancy di sekitar BLE 37/38/39.</li>
+        <li>Pengaruh jarak dan orientasi antena terhadap hasil.</li>
+        <li>Konsistensi antar pengulangan (rentang min–max).</li>
+      </ul>
+    </section>
+    <section class="card" id="peta-kanal">
+      <h2><span class="num">11</span> Peta kanal &amp; konversi</h2>
+      <p class="lead-in">Gunakan tabel ini saat mengisi laporan agar label kanal Wi-Fi/BLE tidak tertukar dengan kanal NRF.</p>
+
+      <h3>11.1 Wi-Fi 2,4 GHz (kanal 1–13)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Wi-Fi</th><th>Pusat (MHz)</th><th>Rentang 20 MHz</th><th>Kanal NRF pusat</th><th>Catatan</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>2412</td><td>2402–2422</td><td>12</td><td><span class="tag green">Non-overlap</span></td></tr>
+            <tr><td>2</td><td>2417</td><td>2407–2427</td><td>17</td><td>Tumpang tindih</td></tr>
+            <tr><td>3</td><td>2422</td><td>2412–2432</td><td>22</td><td>Tumpang tindih</td></tr>
+            <tr><td>4</td><td>2427</td><td>2417–2437</td><td>27</td><td>Tumpang tindih</td></tr>
+            <tr><td>5</td><td>2432</td><td>2422–2442</td><td>32</td><td>Tumpang tindih</td></tr>
+            <tr><td>6</td><td>2437</td><td>2427–2447</td><td>37</td><td><span class="tag green">Non-overlap</span></td></tr>
+            <tr><td>7</td><td>2442</td><td>2432–2452</td><td>42</td><td>Tumpang tindih</td></tr>
+            <tr><td>8</td><td>2447</td><td>2437–2457</td><td>47</td><td>Tumpang tindih</td></tr>
+            <tr><td>9</td><td>2452</td><td>2442–2462</td><td>52</td><td>Tumpang tindih</td></tr>
+            <tr><td>10</td><td>2457</td><td>2447–2467</td><td>57</td><td>Tumpang tindih</td></tr>
+            <tr><td>11</td><td>2462</td><td>2452–2472</td><td>62</td><td><span class="tag green">Non-overlap</span></td></tr>
+            <tr><td>12</td><td>2467</td><td>2457–2477</td><td>67</td><td>Tumpang tindih</td></tr>
+            <tr><td>13</td><td>2472</td><td>2462–2482</td><td>72</td><td>Tumpang tindih</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note-small">Kanal 14 (2484 MHz) hanya dipakai di Jepang dan tidak dibahas di panduan ini.</p>
+
+      <h3>11.2 BLE advertising</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Kanal BLE</th><th>Frekuensi</th><th>Kanal NRF</th><th>Fungsi</th></tr></thead>
+          <tbody>
+            <tr><td>37</td><td>2402 MHz</td><td>2</td><td>Advertising (kanal terendah)</td></tr>
+            <tr><td>38</td><td>2426 MHz</td><td>26</td><td>Advertising (tengah)</td></tr>
+            <tr><td>39</td><td>2480 MHz</td><td>80</td><td>Advertising (tertinggi)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>11.3 Bluetooth Classic</h3>
+      <ul>
+        <li>79 kanal, jarak 1 MHz, rentang 2402–2480 MHz.</li>
+        <li>Setara kanal NRF <strong>2–80</strong>.</li>
+        <li>Pola hopping cepat membuat satu kanal terlihat berubah antar sweep.</li>
+      </ul>
+
+      <div class="callout info">
+        <div class="ic">🔁</div>
+        <p><strong>Ringkasan rumus:</strong><br>
+        Kanal NRF = f − 2400<br>
+        f Wi-Fi pusat = 2412 + 5 × (kanal − 1)<br>
+        Kanal NRF pusat Wi-Fi = 12 + 5 × (kanal − 1)</p>
+      </div>
+    </section>
+
+    <section class="card" id="troubleshooting">
+      <h2><span class="num">12</span> Troubleshooting</h2>
+      <p class="lead-in">Gunakan tabel ini sebelum mengubah kode. Sebagian besar masalah berasal dari wiring, daya, atau port.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Gejala</th><th>Penyebab umum</th><th>Solusi</th></tr></thead>
+          <tbody>
+            <tr><td>Pesan “Modul #1/#2 GAGAL”</td><td>VCC/GND, CSN/CE tertukar, kabel longgar, modul kurang daya.</td><td>Periksa kontinuitas, pastikan 3,3 V, tambahkan kapasitor, cek pin CSN/CE sesuai tabel.</td></tr>
+            <tr><td>Kedua modul gagal</td><td>Bus SPI tidak tersambung atau pin SCK/MISO/MOSI tertukar.</td><td>Ukur jalur SPI; pastikan GPIO18/19/23 dan common ground.</td></tr>
+            <tr><td>Semua kanal 0%</td><td>Antena belum terpasang, modul rusak, sumber terlalu jauh, atau RPD tidak mendeteksi sinyal lemah.</td><td>Pasang antena, dekatkan ke router, ganti modul, pastikan memakai NRF24L01+ (bukan clone bermasalah).</td></tr>
+            <tr><td>Semua kanal 100%</td><td>Modul terlalu dekat router atau mengalami saturasi.</td><td>Jauhkan 2–5 m, ubah orientasi, kurangi <code>SAMPLES</code>, ulangi.</td></tr>
+            <tr><td>Hasil acak/berkedip</td><td>Noise daya, kabel panjang, koneksi breadboard longgar.</td><td>Tambahkan 10 µF + 100 nF, pendekkan kabel, solder bila perlu, naikkan <code>GAP_US</code>.</td></tr>
+            <tr><td>Port COM8 tidak muncul</td><td>Kabel charge-only, driver CP210x, port dipakai aplikasi lain.</td><td>Ganti kabel data, pasang driver CP210x, tutup aplikasi serial lain, cek Device Manager.</td></tr>
+            <tr><td>Upload gagal “Connecting...”</td><td>Board tidak masuk bootloader atau port sibuk.</td><td>Tutup Serial Monitor, tahan BOOT saat “Connecting...”, lepas setelah mulai; turunkan upload speed ke 115200.</td></tr>
+            <tr><td>Board reboot berulang</td><td>Daya USB tidak cukup atau hubungan singkat.</td><td>Pakai port USB di belakang PC/hub bertenaga, lepas modul #2 sementara, periksa short.</td></tr>
+            <tr><td>CSV menumpuk di satu kolom</td><td>Spreadsheet memakai delimiter titik koma/regional.</td><td>Pilih delimiter koma saat impor, atau ganti pengaturan regional sementara.</td></tr>
+            <tr><td>Hanya sebagian kanal terisi</td><td>Modul #2 tidak terdeteksi atau rentang tidak terbagi benar.</td><td>Cek pesan inisialisasi; pastikan <code>pindaiRentang(radio2, 63, 125)</code> dijalankan.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout info">
+        <div class="ic">🔍</div>
+        <p><strong>Debug opsional:</strong> tambahkan <code>radio1.printDetails();</code> dan <code>radio2.printDetails();</code> sementara di <code>setup()</code> setelah <code>begin()</code> untuk melihat konfigurasi register. Hapus lagi setelah selesai agar log CSV tetap bersih.</p>
+      </div>
+    </section>
+    <section class="card" id="lembar-kerja">
+      <h2><span class="num">13</span> Lembar kerja</h2>
+      <p class="lead-in">Isi tabel berikut dari log CSV. Gunakan rata-rata tiga pengulangan untuk setiap skenario.</p>
+
+      <h3>13.1 Tabel rekap data</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Skenario</th><th>Pengulangan</th><th>Kanal tersibuk</th><th>Occupancy</th><th>Kanal tersepi</th><th>Catatan</th></tr></thead>
+          <tbody>
+            <tr><td>A — Baseline</td><td>1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>A — Baseline</td><td>2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>A — Baseline</td><td>3</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>B — Dekat router</td><td>1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>B — Dekat router</td><td>2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>B — Dekat router</td><td>3</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>C — Aktivitas tinggi</td><td>1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>C — Aktivitas tinggi</td><td>2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>C — Aktivitas tinggi</td><td>3</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>D — Orientasi antena</td><td>1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>D — Orientasi antena</td><td>2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>D — Orientasi antena</td><td>3</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>13.2 Pertanyaan diskusi</h3>
+      <ol>
+        <li>Kanal Wi-Fi mana yang paling ramai pada data Anda? Apakah sesuai dengan kanal yang dipakai router sekitar?</li>
+        <li>Apakah kanal 1, 6, dan 11 benar-benar lebih sepi dibanding kanal lain? Jelaskan dengan data.</li>
+        <li>Bandingkan occupancy di sekitar BLE 37, 38, dan 39. Mengapa hasilnya bisa berbeda?</li>
+        <li>Mengapa satu kanal Wi-Fi 20 MHz terlihat melebar ke beberapa kanal NRF?</li>
+        <li>Apa pengaruh jarak ke router terhadap occupancy dan risiko saturasi?</li>
+        <li>Apa pengaruh orientasi antena? Tunjukkan pasangan data yang mendukung.</li>
+        <li>Mengapa RPD tidak boleh disebut sebagai nilai RSSI atau dBm?</li>
+        <li>Sebutkan dua keterbatasan metode ini dan usulkan perbaikan untuk praktikum lanjutan.</li>
+      </ol>
+
+      <h3>13.3 Format laporan</h3>
+      <ul>
+        <li><strong>Judul &amp; identitas</strong> — nama, NIM, kelas, tanggal.</li>
+        <li><strong>Tujuan</strong> — ringkas, sesuai Bagian 02.</li>
+        <li><strong>Alat &amp; wiring</strong> — sertakan tabel pin dan foto rangkaian.</li>
+        <li><strong>Metode</strong> — parameter <code>SAMPLES</code>, <code>SETTLE_US</code>, durasi sweep, skenario.</li>
+        <li><strong>Data</strong> — tabel rekap dan lampiran CSV.</li>
+        <li><strong>Analisis</strong> — grafik, perbandingan skenario, jawaban pertanyaan diskusi.</li>
+        <li><strong>Kesimpulan</strong> — jawab tujuan, sebutkan keterbatasan.</li>
+        <li><strong>Lampiran</strong> — kode (tanpa fungsi TX), log CSV, dokumentasi.</li>
+      </ul>
+
+      <h3>13.4 Rubrik penilaian (contoh)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Komponen</th><th>Bobot</th><th>Kriteria</th></tr></thead>
+          <tbody>
+            <tr><td>Wiring &amp; keselamatan</td><td>20%</td><td>3,3 V benar, common ground, tidak ada korsleting, antena terpasang.</td></tr>
+            <tr><td>Kebenaran data</td><td>25%</td><td>CSV lengkap, tiga pengulangan, label kanal benar.</td></tr>
+            <tr><td>Analisis</td><td>30%</td><td>Grafik jelas, interpretasi didukung data, memahami batas RPD.</td></tr>
+            <tr><td>Diskusi</td><td>15%</td><td>Jawaban kritis, menghubungkan teori dan hasil.</td></tr>
+            <tr><td>Kerapian laporan</td><td>10%</td><td>Struktur lengkap, bahasa jelas, referensi dicantumkan.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="referensi">
+      <h2><span class="num">14</span> Referensi &amp; batas aman</h2>
+      <h3>Referensi</h3>
+      <ul>
+        <li>Nordic Semiconductor, <em>nRF24L01+ Single Chip 2.4 GHz Transceiver — Product Specification</em>. Datasheet resmi (register CD/RPD, kanal RF, mode RX).</li>
+        <li>TMRh20, <em>RF24 Arduino Library Documentation</em> — <a href="https://nrf24.github.io/RF24/">https://nrf24.github.io/RF24/</a></li>
+        <li>Contoh resmi <em>scanner</em> RF24 — <a href="https://github.com/nRF24/RF24/blob/master/examples/scanner/scanner.ino">github.com/nRF24/RF24/examples/scanner</a>. Catatan: contoh tersebut juga memiliki mode <em>constant carrier</em>; jangan aktifkan mode itu.</li>
+        <li>Espressif, <em>ESP32 Technical Reference Manual</em> dan dokumentasi Arduino-ESP32.</li>
+        <li>IEEE 802.11, <em>Wireless LAN Medium Access Control (MAC) and Physical Layer (PHY) Specifications</em>.</li>
+        <li>Bluetooth SIG, <em>Bluetooth Core Specification</em> — <a href="https://www.bluetooth.com/specifications/specs/">bluetooth.com/specifications</a></li>
+      </ul>
+
+      <div class="callout danger">
+        <div class="ic">⚖️</div>
+        <p><strong>Batas legal dan keselamatan.</strong> Dokumen ini disusun untuk pengukuran pasif. Memancarkan sinyal yang sengaja mengganggu komunikasi radio dapat melanggar hukum telekomunikasi dan membahayakan layanan publik. Izin kampus untuk praktikum tidak otomatis membenarkan interferensi di udara terbuka. Jangan menambahkan fungsi transmit ke sketsa ini.</p>
+      </div>
+
+      <h3>Pernyataan sebelum praktikum</h3>
+      <ul class="checklist">
+        <li>Saya memahami bahwa alat ini hanya menerima (RX) dan tidak memancarkan sinyal.</li>
+        <li>Saya tidak akan menambahkan <code>startConstCarrier()</code>, <code>write()</code>, atau fungsi transmit lainnya.</li>
+        <li>Saya akan memakai tegangan 3,3 V dan memeriksa wiring sebelum menyalakan board.</li>
+        <li>Saya akan mencatat parameter, skenario, dan keterbatasan pengukuran secara jujur.</li>
+        <li>Saya akan mengikuti aturan laboratorium dan regulasi telekomunikasi yang berlaku.</li>
+      </ul>
+
+      <hr class="sep">
+      <p class="note-small"><strong>Catatan dokumen:</strong> Panduan ini disusun untuk hardware ESP32-D0WD-V3 (COM8) dan dua modul NRF24L01+ yang terlihat pada foto. Jika pin atau modul diganti, sesuaikan konstanta di bagian atas sketsa dan perbarui tabel wiring pada laporan.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Panduan Praktikum RF • Scanner Spektrum 2,4 GHz • Versi 1.0 • 2 November 2026<br>
+  Dokumen ini hanya untuk pengukuran pasif. Dilarang menambahkan fungsi pemancar.
+</footer>
+
+</body>
+</html>

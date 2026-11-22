@@ -1,0 +1,4 @@
+E:\02_Projek\MyJammer-main\MyJammer\build-esp8266\core\umm_malloc\umm_poison.c.o: \
+ C:\Users\Ahmad\ Ghifari\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.1.2\cores\esp8266\umm_malloc\umm_poison.c \
+ C:\Users\Ahmad\ Ghifari\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\3.1.2\cores\esp8266\CommonHFile.h \
+ E:\02_Projek\MyJammer-main\MyJammer\build-esp8266\core\MyJammer.ino.globals.h
